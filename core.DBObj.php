@@ -20,14 +20,8 @@ class DBObj_ValidateFailException extends BMS_Exception {
 
 abstract class DBObj {
   protected static $__table="";
-  public static $list_elements=array(); //these elements are the columns of the action=list view
-  public static $detail_elements=array(); //these elements are the rows in the action=view view
   public static $one2many=array(); //one-to-x relationships (this is in the "dominant" object)
   public static $links=array(); //x-to-x relationships
-  public static $detail_views=array();
-  public static $edit_elements=array();
-  public static $mod="INVALID";
-  public static $sub="INVALID";
   protected $__invalidFields=array(); //used by validate(), each entry is one of the elements(!) keys
   
   protected function loadFrom($id,$recurse=true) {
@@ -239,42 +233,5 @@ abstract class DBObj {
   public function validate() {
     //override this in subclasses, if there's a need
     //but do not forget to call back here
-  }
-  
-  //get a properly formatted property of an object
-  public function getProperty($key,$escapeHTML=true) {
-    //notice that we don't use any checking - php will throw an error, which will be converted to exception by us
-    $elements=static::$elements;
-    $element=$elements[$key];
-    switch($element["mode"]) {
-      case "select":
-      case "radio":
-        $vals=$element["data"];
-        $vkey=$this->$element["dbkey"];
-        if(!isset($vals[$vkey]))
-          be_error(500,"be_index.php?mod=index","Unbekannter Wert für Key $vkey auf Property $key auf Objekt ".get_called_class()."/".$this->id);
-        $val=$vals[$vkey];
-        break;
-      case "string":
-      case "text":
-        $val=$this->$element["dbkey"];
-        break;
-      case "process":
-        $val=$this->processProperty($key);
-        break;
-      case "one2many":
-        $dsid=$this->$element["dbkey"];
-        if($dsid==0) { //0 = no "child" object set
-          $val="(unbekannt)";
-          break;
-        } else
-          $val=$element["data"]::getById($dsid)->toString();
-      break;
-      default:
-        be_error(500,"be_index.php?mod=index","Unbekannter Modus ".$element["mode"]." für Key $key auf Objekt ".get_called_class()." angefragt");
-    }
-    if($escapeHTML)
-      $val=esc($val);
-    return $val;
   }
 }
