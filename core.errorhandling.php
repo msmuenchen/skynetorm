@@ -8,6 +8,8 @@ class BMS_Exception extends Exception {
 }
 
 set_error_handler(function($level,$message,$file,$line){
+  if($level==E_NOTICE)
+    return;
   throw new BMS_Exception("PHP error %s (%d) in %s:%d",$message,$level,$file,$line);
   return true;
 });
